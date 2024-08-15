@@ -48,7 +48,7 @@ This repo contains this README along with:
 * Four (4) clean datasets
 * Additional files supporting the Shiny dashboard
 
-The three RMarkdown files and their contents are as follows:
+The two RMarkdown files and their contents are as follows:
 * anti_lgbtq_leg_visual.Rmd: Contains the visualizations and narrative in this portfolio.
 * app.R: Contains the code for running the Shiny dashboard with an interactive visualization. 
 * aclu_data_clean.Rmd: Contains the code for cleaning and restructuring the raw data used for the visualizations in this portfolio. Reads in the raw datasets "aclu_lgbtq_data.csv" and "states_regions.csv"" and outputs the clean datasets "aclu_wide.csv" and "aclu_long.csv".
