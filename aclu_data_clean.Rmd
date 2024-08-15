@@ -1,0 +1,119 @@
+---
+title: "Assignment 3: Portfolio Data Cleaning"
+author: "Jennifer Yeaton"
+output: rmarkdown::github_document
+---
+
+```{r, echo=FALSE}
+# loading libraries and setting working directory
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+setwd("~/Documents/Coursework/Winter_2024/Data_Viz/assignment-3-jkyeaton")
+```
+
+```{r}
+# reading in data
+aclu_bill_roundup <- read.csv("aclu_lgbtq_data.csv")
+states_regions <- read.csv("states_regions.csv")
+#glimpse(aclu_bill_roundup)
+#glimpse(states_regions)
+```
+
+```{r}
+# Cell for cleaning and restructuring ACLU data (1 of 3):
+# Fill blank cells with NAs (will be needed to create long dataset and to pivot dataset)
+aclu_in_progress <- aclu_bill_roundup %>% 
+  mutate_all(~na_if(.x, ""))
+
+# Fill NAs with state name above it to create long dataset
+aclu_in_progress <- aclu_in_progress %>% 
+  fill(state, .direction = "down")
+
+#View(aclu_in_progress)
+```
+
+```{r}
+# Cell for cleaning and restructuring ACLU data (2 of 3):
+# Adding a unique index
+aclu_in_progress <- aclu_in_progress %>%
+  mutate(index = if_else(!is.na(bill), row_number(), NA_integer_))
+
+# Fill NAs with unique index above
+aclu_in_progress <- aclu_in_progress %>% 
+  fill(index, .direction = "down")
+
+# Create a column of 1's, which we'll use later for rotating "issue" column long --> wide into one-hot encoded variables:
+aclu_in_progress <- aclu_in_progress %>%
+  mutate(seen = 1)
+
+# Create a column for each row about status, which we'll use later for rotating "status" column long --> wide:
+aclu_long <- aclu_in_progress %>%
+  group_by(index) %>%
+  mutate(status_occurrence = case_when(
+    row_number() == 1 ~ "status",
+    row_number() == 2 ~ "status_details_1",
+    row_number() == 3 ~ "status_details_2",
+    row_number() == 4 ~ "status_details_3",
+    TRUE ~ as.character(row_number())
+  )) %>%
+  ungroup()
+
+#View(aclu_long)
+```
+
+```{r}
+# Pivot the columns for issues into one-hot encoded columns and the column for status into separate columns for each level of detail
+aclu_wide_interim <- aclu_long %>%
+  pivot_wider(names_from = status_occurrence, values_from = status) %>%
+  pivot_wider(names_from = issue, values_from = seen, values_fill = 0)
+  
+#View(aclu_wide_interim)
+```
+
+```{r}
+# Combine the 2 rows per bill into 1 row per index
+aclu_wide <- aclu_wide_interim %>%
+  group_by(index) %>%
+  summarize(across(where(is.numeric), sum, na.rm = TRUE),
+            across(where(is.character), ~first(na.omit(.))),
+            .groups = 'drop') 
+
+#View(aclu_wide)
+```
+
+```{r}
+# Create a column for date by separating the "status_details_1" column into 2 columns
+
+aclu_wide <- aclu_wide %>%
+  separate(col=status_details_1,
+           into=c("status_details_1", "date"),
+           sep = ", ")
+
+#View(aclu_wide_test)
+```
+
+```{r}
+# Convert dates to date type
+aclu_wide$date <- as.Date(aclu_wide$date, format = "%m/%d/%Y")
+
+#View(aclu_wide_test)
+```
+
+
+```{r}
+# Merge ACLU data with state/region data:
+aclu_wide <- merge(x = aclu_wide, y = states_regions, by = "state", all = TRUE)
+aclu_long <- merge(x = aclu_long, y = states_regions, by = "state", all = TRUE)
+
+# View cleaned, wide dataset
+View(aclu_wide)
+View(aclu_long)
+```
+
+```{r}
+# Print the cleaned data to csv files
+write.csv(aclu_wide, "aclu_wide.csv")
+write.csv(aclu_long, "aclu_long.csv")
+
+```

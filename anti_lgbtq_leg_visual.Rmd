@@ -1,0 +1,205 @@
+---
+title: "2023 anti-LGBTQ legislation in the United States: Unprecedented in its scale and the age of its targets"
+author: "Jennifer Yeaton"
+output: html_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# loading libraries and setting working directory
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(urbnmapr) #Citation: https://github.com/UrbanInstitute/urbnmapr
+setwd("~/Documents/Coursework/Winter_2024/Data_Viz/final-project-us_anti_lgbtq_leg")
+```
+
+```{r, echo=FALSE}
+# Reading in cleaned data from csv:
+aclu_wide <- read.csv("data/aclu_wide_STATIC.csv")
+aclu_long <- read.csv("data/aclu_long.csv")
+```
+<br>
+
+#### Introduction
+
+States across the United States are introducing a flood of anti-LGBTQ legislation. In 2022, [180 bills](https://www.cnn.com/politics/anti-lgbtq-plus-state-bill-rights-dg/index.html) were passed targeting the rights of LGBTQ Americans, and in 2023, this number tripled to 510 bills. This wave of legislation is unprecedented in its scale and the ages of the LGBTQ Americans it's targeting. Increasingly, legislative attacks on the LGBTQ community in the United States are focused on restricting the rights of LGBTQ youth in schools, sports, and their access to healthcare. This portfolio explores this upward trend in the introduction of anti-LGBTQ legislation and aims to answer the question: "How is the introduction and passage of anti-LGBTQ legislation in the United States distributed by state, region, and topic, who do these bills target, and how does the status of these bills evolve over the course of 2023?" Protecting the LGBTQ community in the United States is urgent, necessitates political engagement from each individual, and is only becoming more necessary as the quantity of bills grows and the age of their targets shrinks. 
+
+###### Data used in this project:
+The data used in this portfolio is from the American Civil Liberties Union ("ACLU") and Kaggle and is publicly available on [the ACLU website](https://www.aclu.org/legislative-attacks-on-lgbtq-rights-2023) and [the Kaggle website](https://www.kaggle.com/datasets/omer2040/usa-states-to-region?resource=download). This portfolio will focus on data from 2023 because 2023 represents a huge increase in the quantity of anti-LGBTQ passed, and although it's outside of the scope of this project, the trends we see in 2023 [continue into 2024](https://www.aclu.org/legislative-attacks-on-lgbtq-rights-2024).
+
+<br>
+
+#### What are the statuses of pieces of anti-LGBTQ legislation over the course of 2023?
+
+As 2023 progressed, an unprecedented quantity of legislation was introduced. A large subset of this legislation, [75 bills](https://www.nbcnews.com/nbc-out/out-politics-and-policy/75-anti-lgbtq-bills-become-law-2023-rcna124250), were passed into law. Another subset continues to advance in state legislatures across the country. While it is positive that a large portion of this legislation was defeated, the state causes harm even with just the introduction of anti-LGBTQ legislation because these bills provide dangerous legitimacy to homophobia and transphobia. Violence by the state, even just attempted violence through the introduction of bills that don't become law, [engenders violence among its citizens](https://www.nytimes.com/2023/06/22/us/politics/anti-lgbtq-report-adl-glaad.html). All anti-LGBTQ legislation, even the bills that don't become law, represent a threat to the LGBTQ community that goes beyond the harm would cause if they took effect. 
+
+<br>
+
+```{r, echo=FALSE, fig.align='center'}
+# Plot 1: Cleaning
+# Re-do of conversion to date type, other didn't seem to take:
+aclu_wide$date <- as.Date(aclu_wide$date, format = "%Y-%m-%d")
+
+# Group by month and count frequency
+aclu_plot1 <- aclu_wide %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  count(year_month, status) %>%
+  drop_na(year_month)
+
+# Alternative plot 1 data with a cumulative sum instead of a count
+aclu_plot1_alt <- aclu_wide %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  count(year_month, status) %>% 
+  drop_na(year_month) %>% 
+  mutate(cumulative_sum = cumsum(n))
+
+# Plot 1: 
+ggplot(data = aclu_plot1_alt, aes(x = year_month, y = n, group=status)) +
+  #facet_wrap(vars(status)) +
+  labs(title = "Status of Anti-LGBTQ Bills Over the Course of 2023", x = "Month", y = "Count of bills", color = "Status:", caption="Source: ACLU") +
+  theme_minimal(base_size = 14) +
+  geom_line(aes(color=status)) + 
+  scale_color_manual(values=c("#fdcc8a", "#fc8d59", "#e34a33","#410000")) +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 9), 
+        axis.text.y = element_text(size = 9), plot.caption=element_text(size = 9))
+```
+<br>
+
+#### Are anti-LGBTQ legislative attacks confined to the southeast?
+
+The upward trend in legislation introduced aver the course of 2023 represents a groundswell in legislative attacks on the LGBTQ community. Americans often think of homophobia and transphobia as being phenomena found predominately in states in the southeast, but that is not the case and the introduction of anti-LGBTQ legislation is not confined to southern states. Anti-LGBTQ legislation endangers LGBTQ people across every region of the country.
+
+<br>
+
+```{r, echo=FALSE, fig.align='center'}
+# Plot 2: Cleaning
+# Drop where region == NA in the wide version of the dataset, since we won't want to graph NA values in plot 2. Here, NA values represent Puerto Rico and this graph focuses on the continental United States:
+aclu_wide_plot2 <- aclu_wide %>% 
+  drop_na(region)
+
+# Group by region and count frequency
+aclu_plot2 <- aclu_wide_plot2 %>%
+  count(region)
+
+# Plot 2: Vertical bar chart representing a counts of anti-LGBTQ bills introduced by region of the United States
+ggplot(data = aclu_plot2, aes(x = reorder(region, n), y = n)) + #fill=status
+  geom_col(alpha = 0.95, fill = "#a82222", width = 0.8) +
+  labs(title = "Anti-LGBTQ Bills Introduced by Region of U.S.", x = "Region", y = "Count of bills introduced", caption="Source: ACLU") +
+  theme_minimal(base_size = 14) +
+  theme(plot.caption=element_text(size = 9))
+
+```
+
+<br>
+
+#### Where in the U.S. did anti-LGBTQ legislation go into effect in 2023?
+
+Anti-LGBTQ legislation bills are being passed into law across the nation and in staggering quantities. The legislation being passed into law is also not isolated to just states in the southeast United States but also throughout the midwest and west.
+
+<br>
+
+```{r, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
+#Filter by "passed into law"
+aclu_wide_filtered <- aclu_wide %>%
+  filter(status == "Passed into Law")
+
+# Create dataset of 1 row per state, with # of introduced bills per state
+aclu_state_row_count <- aclu_wide_filtered %>%
+  group_by(state) %>%
+  summarise(bills_passed_per_state = n())
+
+aclu_state_row_count <- aclu_state_row_count %>%
+  rename(state_name = state)
+
+# Merge together data
+spatial_data <- left_join(get_urbn_map(map = "states", sf = TRUE),
+                          aclu_state_row_count,
+                          by = "state_name")
+
+spatial_data <- spatial_data %>%
+  mutate(cat_var = case_when(
+    bills_passed_per_state == 0 ~ 1,
+    bills_passed_per_state > 0 & bills_passed_per_state < 5 ~ 2,
+    bills_passed_per_state >= 5 & bills_passed_per_state < 10 ~ 3,
+    bills_passed_per_state >= 10 & bills_passed_per_state < 15 ~ 4,
+    bills_passed_per_state > 15 ~ 5,
+  ))
+
+ggplot(data = spatial_data) +
+  geom_sf(mapping = aes(fill = factor(cat_var)),
+          color = "#ffffff", size = 0.25) +
+  scale_fill_manual(values = c("1" = "#E6B0AA", "2" = "#CD6155", "3" = "#B43735", "4" = "#490200", "5" = "#641E16"),
+                    na.value = "#bcbcbc",
+                    labels = c("1" = "0 bills",
+                               "2" = "1-4 bills",
+                               "3" = "5-9 bills",
+                               "4" = "10-14 bills",
+                               "5" = ">15 bills"),
+                    name = "Number of laws") +
+  labs(title = "Anti-LGBTQ Laws Passed in 2023") + 
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)) + 
+  coord_sf(datum = NA)
+
+```
+
+
+<br>
+
+#### Who is being targeted by the 2023 wave of anti-LGBTQ legislation?
+
+The 2023 wave of anti-LGBTQ legislation is unprecedented not just in its scale, as represented in the graphs above, but also in its targets. Unlike prior waves of anti-LGBTQ legislation in the United States that focused on restricting the right to marry or allowing discrimination against queer people in work environments, recent anti-LGBTQ legislation is focused on restricting the rights of queer children and their exposure to information about queerness. For example, anti-LGBTQ legislation is predominately focused on restricting student and educator rights, restricting the ages at which trans youth can access healthcare, curriculum censorship, forced outing in schools, and banning trans youth from participating in sports consistent with their gender identity. Note that [according to the ACLU](https://www.aclu.org/legislative-attacks-on-lgbtq-rights-2023#issues), the topic "Other Anti-LGBTQ Bills" pertains to bills that don't quite fit in the other categories, such as bills trying to prevent queer Americans from getting married or bills preempting nondiscrimination protections.
+
+<br>
+
+```{r, echo=FALSE, fig.align='center'}
+# Plot 3, additional cleaning: 
+# Drop where issue == NA in the long version of the dataset, since won't want to graph NA values in plot 3. Here, NA values represent missing values:
+#aclu_long_plot3 <- aclu_long %>%
+#  drop_na(issue)
+
+# Group by issue and count frequency
+#aclu_plot3 <- aclu_long_plot3 %>%
+#  count(issue) %>%
+#  arrange(desc(n))
+
+#write.csv(aclu_plot3, "aclu_topic_counts_UNLABELED.csv")
+
+# Read in data you hand-labeled after manipulating using the code above:
+aclu_plot3 <- read.csv("data/aclu_topic_counts_LABELED.csv")
+
+# Make label a character string
+aclu_plot3 <- aclu_plot3 %>%
+  mutate(targeting_youth = as.factor(targeting_youth))
+
+#View(aclu_plot3)
+
+# Plot 3: Topic area prevalence
+ggplot(data = aclu_plot3, aes(y = (reorder(issue, n)), x = n, fill=targeting_youth)) + #(reorder(issue, n))
+  geom_col() + #(alpha = 0.75, fill = "#a82222") +
+  scale_fill_manual(values = c("1" = "#410000", "0" = "#a82222"),
+                    labels = c("1" = "Children",
+                               "0" = "All Ages"),
+                    name = "Target of Bill") +
+  labs(title = "Topic Areas Represented in Anti-LGBTQ Bills", x = "Frequency", y = "Topic Area", caption="Source: ACLU") +
+  theme_minimal(base_size = 12) + 
+  theme(plot.caption=element_text(size = 9)) #+ 
+  #transition_reveal(along=issue)
+  #transition_states(issue, transition_length = 2, state_length = 1) +
+  #enter_fade() + exit_fade()
+```
+<br>
+
+#### How are topic areas represented in anti-LGBTQ legislation distributed across states?
+
+States vary in their political priorities for anti-LGBTQ legislation. [This interactive visualization](https://jkyeaton.shinyapps.io/assignment-4-jkyeaton/) allows us to select a type of anti-LGBTQ legislation from a drop-down menu and see where in the United States legislation on this topic is being introduced and in what quantity. While some states are most focused on restricting student and educator rights, some are focused on banning trans students from school sports, and some states are focused on restricting queer community members' access to healthcare, among other topics. Some states (for example, Texas) are passing a large quantity of anti-LGBTQ legislation, while others are only focused on a subset of issues. This visualization helps us distinguish between states' anti-LGBTQ priorities and also see patterns in the different ways the queer community is being legislatively attacked across the country.
+
+<br>
+
+```{r, echo=FALSE, fig.align='center'}
+knitr::include_app("https://jkyeaton.shinyapps.io/assignment-4-jkyeaton/", height="600px")
+```
+
+
+<br>
+<br>
