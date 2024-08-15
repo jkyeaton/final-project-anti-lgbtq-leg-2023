@@ -42,7 +42,7 @@ $ git clone git@github.com:MACS40700/final-project-us_anti_lgbtq_leg.git
 
 This repo contains this README along with:
 
-* Three (3) RMarkdown files
+* Two (2) RMarkdown files
 * One (1) R file
 * Two (2) raw datasets
 * Four (4) clean datasets
@@ -51,7 +51,6 @@ This repo contains this README along with:
 The three RMarkdown files and their contents are as follows:
 * anti_lgbtq_leg_visual.Rmd: Contains the visualizations and narrative in this portfolio.
 * app.R: Contains the code for running the Shiny dashboard with an interactive visualization. 
-* anti_lgbtq_leg_paper.Rmd: Contains the paper to supplement the visualizations in this portfolio.
 * aclu_data_clean.Rmd: Contains the code for cleaning and restructuring the raw data used for the visualizations in this portfolio. Reads in the raw datasets "aclu_lgbtq_data.csv" and "states_regions.csv"" and outputs the clean datasets "aclu_wide.csv" and "aclu_long.csv".
 
 
